@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>问卷调查</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1 id="title">其实就算填了也没用</h1>
+  <p id="description">爱填补填，反正这问卷我做着玩的</p>
+
+  <form id="survey-form">
+    
+    <label id="name-label" for="name">姓名</label>
+    <input type="text" id="name" name="name" placeholder="请输入您的姓名" required />
+
+    <label id="email-label" for="email">邮箱</label>
+    <input type="email" id="email" name="email" placeholder="请输入您的邮箱" required />
+
+    <label id="number-label" for="number">年龄</label>
+    <input type="number" id="number" name="age" min="10" max="100" placeholder="请输入您的年龄" />
+
+    <label for="dropdown">您目前的角色是什么？</label>
+    <select id="dropdown" name="role" required>
+      <option value="">--选择您的角色--</option>
+      <option value="student">学生</option>
+      <option value="professional">职场人士</option>
+    </select>
+
+    <label>您会向朋友推荐我们吗？</label>
+    <div class="radio-group">
+      <label><input type="radio" name="recommend" value="yes" required />会</label>
+      <label><input type="radio" name="recommend" value="maybe" />可能会</label>
+      <label><input type="radio" name="recommend" value="no" />不会</label>
+    </div>
+
+    <label>您对哪些主题感兴趣？(可多选)</label>
+    <div class="checkbox-group">
+      <label><input type="checkbox" name="topics" value="html" />HTML</label>
+      <label><input type="checkbox" name="topics" value="css" />CSS</label>
+      <label><input type="checkbox" name="topics" value="javascript" />JavaScript</label>
+      <label><input type="checkbox" name="topics" value="python" />Python</label>
+    </div>
+
+    <label for="comments">其他评论</label>
+    <textarea id="comments" name="comments" rows="4" placeholder="分享您的想法..."></textarea>
+
+    <button id="submit" type="submit">提交</button>
+
+  </form>
+
+</body>
+</html>

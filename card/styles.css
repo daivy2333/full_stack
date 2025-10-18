@@ -4,7 +4,10 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+h1{
+    text-align: center;
+    font-style: italic;
+}
 body {
     padding: 20px;
     /* Using a more common, readable sans-serif font stack */

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品落地页</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 页面头部，包含公司logo和导航栏 -->
+  <header id="header">
+    <img id="header-img" src="images\00325-4253748293.png" alt="公司标志">
+    <nav id="nav-bar">
+      <a href="#features" class="nav-link">产品特性</a>
+      <a href="#how-it-works" class="nav-link">工作原理</a>
+      <a href="#pricing" class="nav-link">价格方案</a>
+    </nav>
+  </header>
+
+  <!-- 主页英雄区域，包含标题和邮件订阅表单 -->
+  <section id="hero">
+    <h1>手工制作，匠心独运的艺术品</h1>
+    <form id="form" action="https://www.freecodecamp.com/email-submit">
+      <input type="email" id="email" name="email" placeholder="请输入您的电子邮箱" required>
+      <input type="submit" id="submit" value="开始使用">
+    </form>
+  </section>
+
+  <!-- 产品特性区域，展示三个主要特性 -->
+  <section id="features">
+    <div class="feature-item">
+      <h2>优质材料</h2>
+      <p>我们的长号使用最闪亮的黄铜，全部本地采购。这将延长您购买的使用寿命。</p>
+    </div>
+    <div class="feature-item">
+      <h2>快速配送</h2>
+      <p>我们确保您在制作完成后尽快收到您的长号。如果您不满意，我们还提供免费退货服务。</p>
+    </div>
+    <div class="feature-item">
+      <h2>质量保证</h2>
+      <p>对于您的每一次购买，我们都会确保没有损坏或故障，并会检查和测试您乐器的音准。</p>
+    </div>
+  </section>
+
+  <!-- 工作原理区域，包含产品演示视频 -->
+  <section id="how-it-works">
+    <iframe id="video" width="560" height="315" src="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1" frameborder="0" allowfullscreen></iframe>
+  </section>
+
+  <!-- 价格方案区域，展示三种不同型号的长号及其价格和特性 -->
+  <section id="pricing">
+    <div class="product" id="tenor">
+      <div class="level">次中音长号</div>
+      <h2>¥600</h2>
+      <ol>
+        <li>优质黄铜材质</li>
+        <li>手工抛光处理</li>
+        <li>专业音准调试</li>
+        <li>一年质保服务</li>
+      </ol>
+      <button class="btn">选择</button>
+    </div>
+    <div class="product" id="bass">
+      <div class="level">低音长号</div>
+      <h2>¥900</h2>
+      <ol>
+        <li>加厚黄铜材质</li>
+        <li>手工抛光处理</li>
+        <li>专业音准调试</li>
+        <li>两年质保服务</li>
+      </ol>
+      <button class="btn">选择</button>
+    </div>
+    <div class="product" id="valve">
+      <div class="level">阀键长号</div>
+      <h2>¥1200</h2>
+      <ol>
+        <li>演奏方式类似小号</li>
+        <li>适合爵士乐队使用</li>
+        <li>专业音准调试</li>
+        <li>三年质保服务</li>
+      </ol>
+      <button class="btn">选择</button>
+    </div>
+  </section>
+
+  <!-- 页脚区域，包含版权信息和链接 -->
+  <footer>
+    <ul>
+      <li><a href="#">隐私政策</a></li>
+      <li><a href="#">使用条款</a></li>
+      <li><a href="#">联系我们</a></li>
+    </ul>
+    <span>2025，daivy</span>
+  </footer>
+</body>
+</html>
