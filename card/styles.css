@@ -1,48 +1,86 @@
-body{
-    margin: 20px;
-    font-family: 'Courier New', Courier, monospace,sans-serif;
+/* A simple reset for better consistency across browsers */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.dear
-{
-    width:200px;
-}
-.tongyong
-{
-    width: 500px;
-    margin: 0 auto;
+body {
     padding: 20px;
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
-}
-.shuli
-{
-    background: #c6def5;
-    color: #2b2839;
-    border-bottom: 6px solid #d8cefe;
-}
-.qingmian
-{
-    
-    background: #bdc4ca;
-    color: #555166;
-    border-bottom: 6px solid #90b5c6;
-}
-.dongxia
-{
-    background: #cfafcd;
-    color: #3f3043;
-    border-bottom: 6px solid #654667;
-}
-.xide
-{
-    background: #5d97cc;
-    color: #59556b;
-    border-bottom: 6px solid #374267;
+    /* Using a more common, readable sans-serif font stack */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5; /* A light background to make cards pop */
 }
 
-.border-blue
-{
- border: 1px dotted blue;
+/* Renamed .tongyong to .card for clarity */
+.card {
+    /* Use max-width for responsiveness. It won't exceed 500px but can shrink. */
+    max-width: 500px;
+    width: 90%; /* Take up 90% of the screen on smaller devices */
+    
+    margin: 20px auto; /* Adds space between cards */
+    padding: 20px;
+    border-radius: 8px; /* Rounded corners for a softer look */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds depth */
+    
+    /* Flexbox improvements */
+    display: flex;
+    align-items: center; /* Vertically center the image and text */
+    gap: 20px; /* Modern way to add space between flex items */
 }
+
+/* Renamed .dear to .card-avatar */
+.card-avatar {
+    width: 150px; /* Slightly smaller for better balance */
+    height: 150px;
+    object-fit: cover; /* Prevents the image from stretching */
+    border-radius: 8px;
+}
+
+.card-info {
+    text-align: left; /* Often easier to read than centered text */
+}
+
+/* Style the text elements for better hierarchy */
+.card-info h2 {
+    margin-bottom: 8px;
+}
+
+.card-info .subtitle {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.card-info .emphasis {
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+/* Specific card themes */
+.shuli {
+    background: #eaf2fa;
+    color: #2b2839;
+    border-left: 6px solid #6b9eef;
+}
+
+.qingmian {
+    background: #e9ecef;
+    color: #555166;
+    border-left: 6px solid #8faabc;
+}
+
+.dongxia {
+    background: #fae6f5;
+    color: #3f3043;
+    border-left: 6px solid #c783c9;
+}
+
+.xide {
+    background: #e3f2fd;
+    color: #59556b;
+    border-left: 6px solid #5d97cc;
+}
+
+/* Unused class from original CSS was removed */
+/* .border-blue { border: 1px dotted blue; } */
