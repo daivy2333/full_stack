@@ -7,8 +7,7 @@ body{
 {
     width:200px;
 }
-
-.card
+.tongyong
 {
     width: 500px;
     margin: 0 auto;
@@ -16,9 +15,31 @@ body{
     display: flex;
     justify-content: space-around;
     text-align: center;
-    background: #ddebf8;
+}
+.shuli
+{
+    background: #c6def5;
     color: #2b2839;
     border-bottom: 6px solid #d8cefe;
+}
+.qingmian
+{
+    
+    background: #bdc4ca;
+    color: #555166;
+    border-bottom: 6px solid #90b5c6;
+}
+.dongxia
+{
+    background: #cfafcd;
+    color: #3f3043;
+    border-bottom: 6px solid #654667;
+}
+.xide
+{
+    background: #5d97cc;
+    color: #59556b;
+    border-bottom: 6px solid #374267;
 }
 
 .border-blue
