@@ -5,12 +5,12 @@ body{
 
 .dear
 {
-    width:150px;
+    width:200px;
 }
 
 .card
 {
-    width: 400px;
+    width: 500px;
     margin: 0 auto;
     padding: 20px;
     display: flex;
