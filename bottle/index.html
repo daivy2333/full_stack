@@ -15,14 +15,6 @@
         </header>
 
         <main>
-            <!-- 用户状态区域 -->
-            <section class="user-status">
-                <div class="daily-status">
-                    <span id="daily-pick">今日捡瓶：<span id="pick-status">未捡取</span></span>
-                    <span id="daily-throw">今日投瓶：<span id="throw-status">未投递</span></span>
-                </div>
-            </section>
-
             <!-- 主内容区 -->
             <section class="main-content">
                 <!-- 捡瓶子区域 -->
@@ -39,6 +31,7 @@
                             <div class="bottle-actions">
                                 <button id="like-btn" class="action-btn">🐚 投扇贝</button>
                                 <button id="dislike-btn" class="action-btn">🦴 投鱼骨头</button>
+                                <button id="save-btn" class="action-btn">💾 保存</button>
                             </div>
                         </div>
                     </div>
@@ -49,8 +42,8 @@
                 <div id="write-bottle" class="bottle-container">
                     <h2>写下你的心声</h2>
                     <div class="bottle-form">
-                        <textarea id="message-input" placeholder="写下你想放入漂流瓶的话..." maxlength="200"></textarea>
-                        <div class="char-count"><span id="char-count">0</span>/200</div>
+                        <textarea id="message-input" placeholder="写下你想放入漂流瓶的话..." maxlength="500"></textarea>
+                        <div class="char-count"><span id="char-count">0</span>/500</div>
                         <button id="throw-btn" class="primary-btn">投入大海</button>
                     </div>
                 </div>
@@ -65,11 +58,17 @@
 
         <footer>
             <p>© 2025 赛博漂流瓶 | 每天只有一次机会，请珍惜</p>
+            <div class="footer-buttons">
+                <button id="how-to-play-btn" class="how-to-play-btn">📖 玩法说明</button>
+                <a href="saved-bottles.html" class="how-to-play-btn">我的收藏</a>
+            </div>
         </footer>
     </div>
 
     <!-- 提示消息 -->
     <div id="toast" class="toast hidden"></div>
+
+
 
     <script src="script.js"></script>
 </body>

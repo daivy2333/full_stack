@@ -198,6 +198,8 @@ header p {
     cursor: pointer;
     transition: all 0.3s;
     align-self: center;
+    margin: 0 auto;
+    display: block;
 }
 
 .primary-btn:hover {
@@ -262,6 +264,32 @@ footer {
     padding: 20px;
     color: var(--light-text);
     font-size: 0.9rem;
+    position: relative;
+}
+
+.how-to-play-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    text-decoration: none;
+}
+
+.how-to-play-btn:hover {
+    background-color: #3a7bc8;
+    transform: translateY(-2px);
+}
+
+.footer-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 /* 提示消息 */
@@ -290,6 +318,8 @@ footer {
 .hidden {
     display: none;
 }
+
+
 
 /* 响应式设计 */
 @media (min-width: 768px) {

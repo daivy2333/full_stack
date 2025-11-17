@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏 - 漂流瓶</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .saved-bottles-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .saved-bottle {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 150px;
+        }
+
+        .saved-bottle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .saved-bottle-title {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .saved-bottle-date {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .saved-bottle-message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .saved-bottle-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--light-text);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .saved-bottle-meta span {
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .delete-btn {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--light-text);
+            font-size: 1.2rem;
+        }
+
+        .back-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #3a7bc8;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 我的收藏 🌊</h1>
+            <p>珍藏那些触动心灵的漂流瓶</p>
+        </header>
+
+        <main>
+            <div class="saved-bottles-container">
+                <h2>收藏的漂流瓶</h2>
+                <div id="saved-bottles-list">
+                    <!-- 保存的漂流瓶将在这里显示 -->
+                </div>
+            </div>
+
+            <div class="footer-buttons">
+                <a href="index.html" class="back-btn">← 返回主页</a>
+            </div>
+        </main>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script>
+        // DOM 元素
+        const savedBottlesList = document.getElementById('saved-bottles-list');
+        const toast = document.getElementById('toast');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedBottles();
+        });
+
+        // 加载保存的漂流瓶
+        function loadSavedBottles() {
+            const savedBottles = JSON.parse(localStorage.getItem('savedBottles') || '[]');
+
+            if (savedBottles.length === 0) {
+                savedBottlesList.innerHTML = '<div class="empty-message">还没有收藏任何漂流瓶，快去捡一些喜欢的瓶子吧！</div>';
+                return;
+            }
+
+            savedBottlesList.innerHTML = '';
+
+            // 按保存日期倒序排列（最新的在前面）
+            savedBottles.sort((a, b) => new Date(b.savedDate) - new Date(a.savedDate));
+
+            savedBottles.forEach((savedBottle, index) => {
+                const bottleElement = createBottleElement(savedBottle, index);
+                savedBottlesList.appendChild(bottleElement);
+            });
+        }
+
+        // 创建漂流瓶元素
+        function createBottleElement(savedBottle, index) {
+            const bottleDiv = document.createElement('div');
+            bottleDiv.className = 'saved-bottle';
+
+            bottleDiv.innerHTML = `
+                <div class="saved-bottle-header">
+                    <div class="saved-bottle-title">${savedBottle.annotation || '未命名'}</div>
+                    <div class="saved-bottle-date">保存于: ${formatDate(savedBottle.savedDate)}</div>
+                </div>
+                <div class="saved-bottle-message">${savedBottle.message}</div>
+                <div class="saved-bottle-meta">
+                    <span>作者: ${savedBottle.author}</span>
+                    <span>原日期: ${savedBottle.date}</span>
+                    <span>🐚 ${savedBottle.likes} 🦴 ${savedBottle.dislikes} 👁 ${savedBottle.views}</span>
+                    <button class="delete-btn" data-index="${index}">删除</button>
+                </div>
+            `;
+
+            // 添加删除按钮事件监听器
+            const deleteBtn = bottleDiv.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => deleteSavedBottle(index));
+
+            return bottleDiv;
+        }
+
+        // 删除保存的漂流瓶
+        function deleteSavedBottle(index) {
+            if (!confirm('确定要删除这个漂流瓶吗？')) {
+                return;
+            }
+
+            const savedBottles = JSON.parse(localStorage.getItem('savedBottles') || '[]');
+            savedBottles.splice(index, 1);
+            localStorage.setItem('savedBottles', JSON.stringify(savedBottles));
+
+            showToast('漂流瓶已删除', 'success');
+            loadSavedBottles(); // 重新加载列表
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = 'toast';
+
+            if (type === 'success') {
+                toast.classList.add('success');
+            } else if (type === 'error') {
+                toast.classList.add('error');
+            }
+
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
