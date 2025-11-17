@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博漂流瓶</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 赛博漂流瓶 🌊</h1>
+            <p>在大海中传递你的心声</p>
+        </header>
+
+        <main>
+            <!-- 用户状态区域 -->
+            <section class="user-status">
+                <div class="daily-status">
+                    <span id="daily-pick">今日捡瓶：<span id="pick-status">未捡取</span></span>
+                    <span id="daily-throw">今日投瓶：<span id="throw-status">未投递</span></span>
+                </div>
+            </section>
+
+            <!-- 主内容区 -->
+            <section class="main-content">
+                <!-- 捡瓶子区域 -->
+                <div id="pick-bottle" class="bottle-container">
+                    <h2>捡起一个漂流瓶</h2>
+                    <div id="bottle-display" class="bottle hidden">
+                        <div class="bottle-content">
+                            <p id="bottle-message">这里将显示漂流瓶内容...</p>
+                            <div class="bottle-meta">
+                                <span id="bottle-author">作者: 匿名</span>
+                                <span id="bottle-date">日期: 2023-01-01</span>
+                                <span id="bottle-stats">🐚 <span id="bottle-likes">0</span> 🦴 <span id="bottle-dislikes">0</span> 👁 <span id="bottle-views">0</span></span>
+                            </div>
+                            <div class="bottle-actions">
+                                <button id="like-btn" class="action-btn">🐚 投扇贝</button>
+                                <button id="dislike-btn" class="action-btn">🦴 投鱼骨头</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="pick-btn" class="primary-btn">捡起漂流瓶</button>
+                </div>
+
+                <!-- 写瓶子区域 -->
+                <div id="write-bottle" class="bottle-container">
+                    <h2>写下你的心声</h2>
+                    <div class="bottle-form">
+                        <textarea id="message-input" placeholder="写下你想放入漂流瓶的话..." maxlength="200"></textarea>
+                        <div class="char-count"><span id="char-count">0</span>/200</div>
+                        <button id="throw-btn" class="primary-btn">投入大海</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 切换按钮 -->
+            <div class="toggle-container">
+                <button id="toggle-btn" class="toggle-btn">切换到写瓶子模式</button>
+                <button id="dev-mode-btn" class="dev-btn">开发者模式</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2025 赛博漂流瓶 | 每天只有一次机会，请珍惜</p>
+        </footer>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

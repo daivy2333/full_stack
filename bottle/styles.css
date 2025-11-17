@@ -1,0 +1,310 @@
+/* 全局样式 */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f5f7fa;
+    --accent-color: #ff7043;
+    --text-color: #333;
+    --light-text: #777;
+    --border-color: #e0e0e0;
+    --success-color: #66bb6a;
+    --error-color: #ef5350;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--text-color);
+    background-color: #f0f8ff;
+    background-image: linear-gradient(120deg, #e0f7fa 0%, #bbdefb 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 头部样式 */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+header p {
+    font-size: 1.2rem;
+    color: var(--light-text);
+}
+
+/* 用户状态区域 */
+.user-status {
+    margin-bottom: 20px;
+}
+
+.daily-status {
+    display: flex;
+    justify-content: space-around;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.daily-status span {
+    font-weight: 500;
+}
+
+/* 主内容区域 */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bottle-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.bottle-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bottle-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.bottle {
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.bottle-content {
+    text-align: center;
+}
+
+#bottle-message {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.bottle-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    color: var(--light-text);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.bottle-meta span {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+.bottle-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.action-btn:hover {
+    transform: scale(1.2);
+}
+
+.bottle-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#message-input {
+    width: 100%;
+    min-height: 150px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.char-count {
+    text-align: right;
+    color: var(--light-text);
+    margin-bottom: 15px;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    align-self: center;
+}
+
+.primary-btn:hover {
+    background-color: #3a7bc8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn:disabled {
+    background-color: #b0bec5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 切换按钮 */
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.toggle-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+    background-color: #ff5722;
+    transform: translateY(-2px);
+}
+
+.dev-btn {
+    background-color: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: none; /* 默认隐藏 */
+}
+
+.dev-btn:hover {
+    background-color: #7b1fa2;
+    transform: translateY(-2px);
+}
+
+/* 页脚 */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+/* 提示消息 */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    z-index: 100;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.toast.success {
+    background-color: var(--success-color);
+}
+
+.toast.error {
+    background-color: var(--error-color);
+}
+
+.hidden {
+    display: none;
+}
+
+/* 响应式设计 */
+@media (min-width: 768px) {
+    .main-content {
+        flex-direction: row;
+        gap: 20px;
+    }
+
+    .bottle-container {
+        flex: 1;
+    }
+
+    .toggle-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+}
