@@ -75,7 +75,7 @@ class UIController {
 
         // 绑定点击"视觉瓶子"的事件，点击后打开信件
         if (this.elements.visualBottle) {
-            this.elements.visualBottle.addEventListener('click', openBottle);
+            this.elements.visualBottle.addEventListener('click', () => openBottle());
         }
 
         // 初始隐藏开发者模式按钮
@@ -174,8 +174,14 @@ class UIController {
 
     /**
      * 打开瓶子
+     * @param {Object} userState - 用户状态对象
      */
-    openBottle() {
+    openBottle(userState) {
+        // 如果瓶子已经打开，则不再响应
+        if (userState && userState.currentBottle && userState.currentBottle.isOpened && !userState.devMode) {
+            return;
+        }
+
         // 1. 隐藏瓶子图标
         this.elements.visualBottle.classList.add('hidden');
 

@@ -100,7 +100,8 @@ class AppController {
             dislikes: bottle.dislikes,
             views: bottle.views,
             liked: false,
-            disliked: false
+            disliked: false,
+            isOpened: false // 标记瓶子是否已打开
         };
 
         // 更新UI
@@ -109,6 +110,15 @@ class AppController {
 
         // 显示捡到的瓶子
         this.uiController.showPickedBottle(bottle);
+
+        // 在非开发者模式下，直接打开瓶子
+        if (!this.userState.devMode) {
+            setTimeout(() => {
+                this.openBottle();
+                this.userState.currentBottle.isOpened = true;
+                this.saveUserState();
+            }, 1500); // 延迟1.5秒后自动打开，让用户看到瓶子动画
+        }
 
         this.uiController.showToast('你捡到了一个漂流瓶！', 'success');
     }
@@ -307,7 +317,12 @@ class AppController {
      * 打开瓶子
      */
     openBottle() {
-        this.uiController.openBottle();
+        this.uiController.openBottle(this.userState);
+        // 标记瓶子已打开
+        if (this.userState.currentBottle) {
+            this.userState.currentBottle.isOpened = true;
+            this.saveUserState();
+        }
     }
 
     /**

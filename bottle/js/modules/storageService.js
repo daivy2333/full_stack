@@ -33,7 +33,7 @@ class StorageService {
         const today = new Date().toDateString();
         if (parsedState.lastPickDate !== today) {
             parsedState.hasPickedToday = false;
-            // 如果是新的一天，重置当前瓶子状态
+            // 如果是新的一天，重置当前瓶子状态，即使用户没有打开瓶子
             parsedState.currentBottle = null;
         }
         if (parsedState.lastThrowDate !== today) {
