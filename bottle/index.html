@@ -20,8 +20,16 @@
                 <!-- 捡瓶子区域 -->
                 <div id="pick-bottle" class="bottle-container">
                     <h2>捡起一个漂流瓶</h2>
-                    <div id="bottle-display" class="bottle hidden">
-                        <div class="bottle-content">
+                    <div id="bottle-display" class="bottle-wrapper hidden">
+                        <div id="visual-bottle" class="visual-bottle">
+                            <div class="bottle-body">
+                                <div class="cork"></div>
+                                <div class="paper-scroll"></div>
+                                <div class="shine"></div>
+                            </div>
+                            <p class="hint-text">点击打开瓶子</p>
+                        </div>
+                        <div id="bottle-content-view" class="bottle-content hidden">
                             <p id="bottle-message">这里将显示漂流瓶内容...</p>
                             <div class="bottle-meta">
                                 <span id="bottle-author">作者: 匿名</span>
@@ -68,8 +76,15 @@
     <!-- 提示消息 -->
     <div id="toast" class="toast hidden"></div>
 
+    <!-- 海洋背景与波浪 -->
+    <div class="ocean-background">
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+    </div>
 
 
-    <script src="script.js"></script>
+
+    <!-- 引入模块化JavaScript -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
