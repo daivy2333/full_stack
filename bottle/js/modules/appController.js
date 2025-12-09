@@ -14,22 +14,47 @@ class AppController {
     constructor() {
         this.bottleService = new BottleService();
         this.uiController = new UIController();
-        this.userState = StorageService.getUserState();
-        this.viewedBottles = this.userState.viewedBottles || [];
+        this.userState = null;
+        this.viewedBottles = [];
+        this.currentUser = null;
     }
 
     /**
      * 初始化应用
      */
     async init() {
-        // 加载漂流瓶数据
-        await this.bottleService.loadBottles();
+        try {
+            // 检查用户是否已登录
+            const token = StorageService.getToken();
+            if (token) {
+                this.currentUser = StorageService.getUserInfo();
+                // 获取用户状态
+                this.userState = await StorageService.getUserState();
+            } else {
+                // 如果用户未登录，使用默认状态
+                this.userState = {
+                    hasPickedToday: false,
+                    hasThrownToday: false,
+                    lastPickDate: null,
+                    lastThrowDate: null,
+                    currentView: 'pick',
+                    devMode: false,
+                    hasSeenTutorial: false,
+                    currentBottle: null,
+                    viewedBottles: []
+                };
+            }
 
-        // 设置事件监听器
-        this.setupEventListeners();
+            // 设置事件监听器
+            this.setupEventListeners();
 
-        // 更新UI
-        this.uiController.updateUI(this.userState);
+            // 更新UI
+            this.uiController.updateUI(this.userState, this.currentUser);
+        } catch (error) {
+            console.error('初始化应用失败:', error);
+            // 显示错误提示
+            this.uiController.showToast('初始化应用失败，请刷新页面重试', 'error');
+        }
     }
 
     /**
@@ -47,8 +72,100 @@ class AppController {
             toggleDevMode: this.toggleDevMode.bind(this),
             handleTitleClick: this.handleTitleClick.bind(this),
             showTutorialBottle: this.showTutorialBottle.bind(this),
-            openBottle: this.openBottle.bind(this)
+            openBottle: this.openBottle.bind(this),
+            // 添加认证相关事件
+            showLoginModal: this.showLoginModal.bind(this),
+            showRegisterModal: this.showRegisterModal.bind(this),
+            login: this.login.bind(this),
+            register: this.register.bind(this),
+            logout: this.logout.bind(this)
         });
+    }
+
+    /**
+     * 显示登录模态框
+     */
+    showLoginModal() {
+        this.uiController.showLoginModal();
+    }
+
+    /**
+     * 显示注册模态框
+     */
+    showRegisterModal() {
+        this.uiController.showRegisterModal();
+    }
+
+    /**
+     * 用户登录
+     * @param {string} username - 用户名
+     * @param {string} password - 密码
+     */
+    async login(username, password) {
+        try {
+            const data = await StorageService.login(username, password);
+            this.currentUser = data.user;
+
+            // 获取用户状态
+            this.userState = await StorageService.getUserState();
+
+            // 更新UI
+            this.uiController.updateUI(this.userState, this.currentUser);
+            this.uiController.hideAuthModals();
+            this.uiController.showToast('登录成功', 'success');
+        } catch (error) {
+            console.error('登录失败:', error);
+            this.uiController.showToast(error.message || '登录失败', 'error');
+        }
+    }
+
+    /**
+     * 用户注册
+     * @param {string} username - 用户名
+     * @param {string} email - 邮箱
+     * @param {string} password - 密码
+     */
+    async register(username, email, password) {
+        try {
+            const data = await StorageService.register(username, email, password);
+            this.currentUser = data.user;
+
+            // 获取用户状态
+            this.userState = await StorageService.getUserState();
+
+            // 更新UI
+            this.uiController.updateUI(this.userState, this.currentUser);
+            this.uiController.hideAuthModals();
+            this.uiController.showToast('注册成功', 'success');
+        } catch (error) {
+            console.error('注册失败:', error);
+            this.uiController.showToast(error.message || '注册失败', 'error');
+        }
+    }
+
+    /**
+     * 用户登出
+     */
+    logout() {
+        StorageService.logout();
+        this.currentUser = null;
+
+        // 重置用户状态
+        this.userState = {
+            hasPickedToday: false,
+            hasThrownToday: false,
+            lastPickDate: null,
+            lastThrowDate: null,
+            currentView: 'pick',
+            devMode: false,
+            hasSeenTutorial: false,
+            currentBottle: null,
+            viewedBottles: []
+        };
+
+        // 更新UI
+        this.uiController.updateUI(this.userState, this.currentUser);
+        this.uiController.showToast('已退出登录', 'info');
     }
 
     /**
@@ -72,161 +189,219 @@ class AppController {
     /**
      * 捡漂流瓶
      */
-    pickBottleFromSea() {
-        if (!this.userState.devMode && this.userState.hasPickedToday) {
-            this.uiController.showToast('今天已经捡过漂流瓶了，明天再来吧！', 'error');
-            return;
+    async pickBottleFromSea() {
+        try {
+            if (!this.userState.devMode && this.userState.hasPickedToday) {
+                this.uiController.showToast('今天已经捡过漂流瓶了，明天再来吧！', 'error');
+                return;
+            }
+
+            // 显示加载中状态
+            this.uiController.showLoadingState();
+
+            // 从API获取一个随机漂流瓶
+            const bottle = await this.bottleService.getRandomBottle();
+
+            // 更新状态
+            this.userState.hasPickedToday = true;
+            this.userState.currentBottle = {
+                id: bottle.id,
+                message: bottle.message,
+                author: bottle.author,
+                date: bottle.date,
+                likes: bottle.likes,
+                dislikes: bottle.dislikes,
+                views: bottle.views,
+                liked: bottle.userReaction === 'like',
+                disliked: bottle.userReaction === 'dislike',
+                isOpened: false // 标记瓶子是否已打开
+            };
+
+            // 更新UI
+            this.uiController.updateUI(this.userState, this.currentUser);
+            await this.saveUserState();
+
+            // 显示捡到的瓶子
+            this.uiController.showPickedBottle(bottle);
+
+            // 在非开发者模式下，直接打开瓶子
+            if (!this.userState.devMode) {
+                setTimeout(() => {
+                    this.openBottle();
+                    this.userState.currentBottle.isOpened = true;
+                    this.saveUserState();
+                }, 1500); // 延迟1.5秒后自动打开，让用户看到瓶子动画
+            }
+
+            this.uiController.showToast('你捡到了一个漂流瓶！', 'success');
+        } catch (error) {
+            console.error('捡漂流瓶失败:', error);
+            this.uiController.showToast('捡漂流瓶失败，请重试', 'error');
+        } finally {
+            // 隐藏加载中状态
+            this.uiController.hideLoadingState();
         }
-
-        // 获取一个未看过的漂流瓶
-        const bottle = this.bottleService.getUnseenBottle(this.viewedBottles);
-
-        if (!bottle) {
-            this.uiController.showToast('大海中没有漂流瓶了，明天再来吧！', 'error');
-            return;
-        }
-
-        // 将漂流瓶ID添加到已看列表
-        this.viewedBottles.push(bottle.id);
-
-        // 更新状态
-        this.userState.hasPickedToday = true;
-        this.userState.currentBottle = {
-            id: bottle.id,
-            message: bottle.message,
-            author: bottle.author,
-            date: bottle.date,
-            likes: bottle.likes,
-            dislikes: bottle.dislikes,
-            views: bottle.views,
-            liked: false,
-            disliked: false,
-            isOpened: false // 标记瓶子是否已打开
-        };
-
-        // 更新UI
-        this.uiController.updateUI(this.userState);
-        this.saveUserState();
-
-        // 显示捡到的瓶子
-        this.uiController.showPickedBottle(bottle);
-
-        // 在非开发者模式下，直接打开瓶子
-        if (!this.userState.devMode) {
-            setTimeout(() => {
-                this.openBottle();
-                this.userState.currentBottle.isOpened = true;
-                this.saveUserState();
-            }, 1500); // 延迟1.5秒后自动打开，让用户看到瓶子动画
-        }
-
-        this.uiController.showToast('你捡到了一个漂流瓶！', 'success');
     }
 
     /**
      * 投漂流瓶
      */
-    throwBottleToSea() {
-        if (!this.userState.devMode && this.userState.hasThrownToday) {
-            this.uiController.showToast('今天已经投过漂流瓶了，明天再来吧！', 'error');
-            return;
+    async throwBottleToSea() {
+        try {
+            if (!this.userState.devMode && this.userState.hasThrownToday) {
+                this.uiController.showToast('今天已经投过漂流瓶了，明天再来吧！', 'error');
+                return;
+            }
+
+            const message = this.uiController.getMessageInput();
+            if (message === '') {
+                this.uiController.showToast('请写下你想说的话', 'error');
+                return;
+            }
+
+            // 显示加载中状态
+            this.uiController.showLoadingState();
+
+            // 创建新的漂流瓶
+            const authorName = this.currentUser ? this.currentUser.username : "匿名用户";
+            await this.bottleService.createBottle(message, authorName);
+
+            // 更新状态
+            this.userState.hasThrownToday = true;
+            await this.saveUserState();
+
+            // 清空输入框
+            this.uiController.clearMessageInput();
+
+            // 更新UI
+            this.uiController.updateUI(this.userState, this.currentUser);
+
+            this.uiController.showToast('你的漂流瓶已投入大海！', 'success');
+        } catch (error) {
+            console.error('投漂流瓶失败:', error);
+            this.uiController.showToast('投漂流瓶失败，请重试', 'error');
+        } finally {
+            // 隐藏加载中状态
+            this.uiController.hideLoadingState();
         }
-
-        const message = this.uiController.getMessageInput();
-        if (message === '') {
-            this.uiController.showToast('请写下你想说的话', 'error');
-            return;
-        }
-
-        // 创建新的漂流瓶
-        this.bottleService.createBottle(message);
-
-        // 更新状态
-        this.userState.hasThrownToday = true;
-
-        // 清空输入框
-        this.uiController.clearMessageInput();
-
-        // 更新UI
-        this.uiController.updateUI(this.userState);
-        this.saveUserState();
-
-        this.uiController.showToast('你的漂流瓶已投入大海！', 'success');
     }
 
     /**
      * 喜欢瓶子（投扇贝）
      */
-    likeBottle() {
-        if (!this.userState.currentBottle || this.userState.currentBottle.liked) return;
+    async likeBottle() {
+        try {
+            if (!this.userState.currentBottle || this.userState.currentBottle.liked) return;
 
-        // 更新瓶子状态
-        this.userState.currentBottle.liked = true;
-        this.userState.currentBottle.disliked = false;
+            // 显示加载中状态
+            this.uiController.showLoadingState();
 
-        // 更新UI中的点赞数
-        this.uiController.updateLikesCount();
+            // 调用API进行点赞
+            const result = await this.bottleService.reactToBottle(this.userState.currentBottle.id, 'like');
 
-        // 显示提示消息
-        this.uiController.showToast('你投了一个扇贝，这个瓶子会被更多人看到！', 'success');
+            // 更新瓶子状态
+            this.userState.currentBottle.liked = true;
+            this.userState.currentBottle.disliked = false;
+            this.userState.currentBottle.likes = result.likes;
+            this.userState.currentBottle.dislikes = result.dislikes;
 
-        // 禁用按钮
-        this.uiController.disableLikeButtons();
+            // 更新UI中的点赞数
+            this.uiController.updateLikesCount();
+
+            // 显示提示消息
+            this.uiController.showToast('你投了一个扇贝，这个瓶子会被更多人看到！', 'success');
+
+            // 禁用按钮
+            this.uiController.disableLikeButtons();
+        } catch (error) {
+            console.error('点赞失败:', error);
+            this.uiController.showToast('点赞失败，请重试', 'error');
+        } finally {
+            // 隐藏加载中状态
+            this.uiController.hideLoadingState();
+        }
     }
 
     /**
      * 不喜欢瓶子（投鱼骨头）
      */
-    dislikeBottle() {
-        if (!this.userState.currentBottle || this.userState.currentBottle.disliked) return;
+    async dislikeBottle() {
+        try {
+            if (!this.userState.currentBottle || this.userState.currentBottle.disliked) return;
 
-        // 更新用户状态
-        this.userState.currentBottle.disliked = true;
-        this.userState.currentBottle.liked = false;
+            // 显示加载中状态
+            this.uiController.showLoadingState();
 
-        // 更新UI中的点踩数
-        this.uiController.updateDislikesCount();
+            // 调用API进行点踩
+            const result = await this.bottleService.reactToBottle(this.userState.currentBottle.id, 'dislike');
 
-        // 显示提示信息
-        this.uiController.showToast('你投了一个鱼骨头，这个瓶子会被减少曝光', 'success');
+            // 更新用户状态
+            this.userState.currentBottle.disliked = true;
+            this.userState.currentBottle.liked = false;
+            this.userState.currentBottle.likes = result.likes;
+            this.userState.currentBottle.dislikes = result.dislikes;
 
-        // 禁用按钮
-        this.uiController.disableLikeButtons();
+            // 更新UI中的点踩数
+            this.uiController.updateDislikesCount();
+
+            // 显示提示信息
+            this.uiController.showToast('你投了一个鱼骨头，这个瓶子会被减少曝光', 'success');
+
+            // 禁用按钮
+            this.uiController.disableLikeButtons();
+        } catch (error) {
+            console.error('点踩失败:', error);
+            this.uiController.showToast('点踩失败，请重试', 'error');
+        } finally {
+            // 隐藏加载中状态
+            this.uiController.hideLoadingState();
+        }
     }
 
     /**
      * 保存当前漂流瓶
      */
-    saveCurrentBottle() {
-        if (!this.userState.currentBottle) {
-            this.uiController.showToast('没有可保存的漂流瓶', 'error');
-            return;
-        }
+    async saveCurrentBottle() {
+        try {
+            if (!this.userState.currentBottle) {
+                this.uiController.showToast('没有可保存的漂流瓶', 'error');
+                return;
+            }
 
-        // 检查是否已经保存过这个漂流瓶
-        const savedBottles = StorageService.getSavedBottles();
-        const isSaved = savedBottles.some(bottle => bottle.id === this.userState.currentBottle.id);
+            // 检查用户是否已登录
+            if (!this.currentUser) {
+                this.uiController.showToast('请先登录后再保存漂流瓶', 'error');
+                this.showLoginModal();
+                return;
+            }
 
-        if (isSaved) {
-            this.uiController.showToast('这个漂流瓶已经保存过了', 'error');
-            return;
-        }
+            // 弹出输入框，让用户输入标注
+            const annotation = this.uiController.promptForAnnotation('请为这个漂流瓶添加一个标注（最多10个字）：');
 
-        // 弹出输入框，让用户输入标注
-        const annotation = this.uiController.promptForAnnotation('请为这个漂流瓶添加一个标注（最多10个字）：');
+            if (annotation === null) {
+                // 用户点击了取消
+                return;
+            }
 
-        if (annotation === null) {
-            // 用户点击了取消
-            return;
-        }
+            // 显示加载中状态
+            this.uiController.showLoadingState();
 
-        // 保存漂流瓶
-        const success = this.bottleService.saveBottle(this.userState.currentBottle, annotation);
+            // 保存漂流瓶
+            const success = await this.bottleService.saveBottle(this.userState.currentBottle, annotation);
 
-        if (success) {
-            // 更新UI
-            this.uiController.updateUI(this.userState);
-            this.uiController.showToast('漂流瓶已保存到收藏！', 'success');
+            if (success) {
+                // 更新UI
+                this.uiController.updateUI(this.userState, this.currentUser);
+                this.uiController.showToast('漂流瓶已保存到收藏！', 'success');
+            } else {
+                this.uiController.showToast('保存漂流瓶失败', 'error');
+            }
+        } catch (error) {
+            console.error('保存漂流瓶失败:', error);
+            this.uiController.showToast('保存漂流瓶失败，请重试', 'error');
+        } finally {
+            // 隐藏加载中状态
+            this.uiController.hideLoadingState();
         }
     }
 
@@ -328,9 +503,15 @@ class AppController {
     /**
      * 保存用户状态
      */
-    saveUserState() {
-        this.userState.viewedBottles = this.viewedBottles;
-        StorageService.setUserState(this.userState);
+    async saveUserState() {
+        try {
+            this.userState.viewedBottles = this.viewedBottles;
+            await StorageService.setUserState(this.userState);
+        } catch (error) {
+            console.error('保存用户状态失败:', error);
+            // 如果API请求失败，回退到本地存储
+            localStorage.setItem('bottleUserState', JSON.stringify(this.userState));
+        }
     }
 }
 
