@@ -13,7 +13,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中间件
-app.use(cors()); // 允许跨域请求
+app.use(cors({
+  origin: ['http://localhost:5500', 'http://127.0.0.1:5500'], // 允许的前端地址
+  credentials: true // 允许发送凭证
+})); // 允许跨域请求
 app.use(express.json()); // 解析JSON请求体
 app.use(express.urlencoded({ extended: true })); // 解析URL编码的请求体
 
@@ -27,8 +30,11 @@ app.use('/api/auth', authRoutes);
 // 漂流瓶公开路由（获取和创建漂流瓶）
 app.use('/api/bottles', bottleRoutes);
 
-// 需要认证的路由
-app.use('/api/user', authenticateToken, userRoutes);
+// 用户路由 - 部分需要认证
+app.use('/api/user', userRoutes);
+
+// 需要认证的用户路由
+app.use('/api/user/saves', authenticateToken, userRoutes);
 // 只对需要认证的漂流瓶操作使用认证中间件
 app.post('/api/bottles/:id/react', authenticateToken, bottleRoutes);
 

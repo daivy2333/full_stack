@@ -214,7 +214,12 @@ class BottleManager {
       await bottleAPI.updateUserState(userId, stateUpdates);
     } catch (error) {
       console.error('更新用户状态失败:', error);
-      showToast('更新状态失败，请稍后再试');
+      if (error.message === '请先登录') {
+        // 显示登录模态框
+        authManager.showLoginModal();
+      } else {
+        showToast('更新状态失败，请稍后再试');
+      }
     }
   }
 
@@ -246,11 +251,29 @@ class BottleManager {
       this.bottleDisplay.classList.remove('hidden');
 
       // 记录用户已捡起漂流瓶
-      await bottleAPI.recordBottlePicked(userId);
+      try {
+        await bottleAPI.recordBottlePicked(userId);
+      } catch (error) {
+        if (error.message === '请先登录') {
+          // 显示登录模态框
+          authManager.showLoginModal();
+          return;
+        }
+        throw error;
+      }
 
       // 更新用户状态
       if (!this.userState.devMode) {
-        await this.updateUserState({ hasPickedToday: true });
+        try {
+          await this.updateUserState({ hasPickedToday: true });
+        } catch (error) {
+          if (error.message === '请先登录') {
+            // 显示登录模态框
+            authManager.showLoginModal();
+            return;
+          }
+          throw error;
+        }
       }
 
       // 更新UI
@@ -430,7 +453,17 @@ class BottleManager {
 
       // 更新用户状态
       if (!this.userState.devMode) {
-        await this.updateUserState({ hasThrownToday: true });
+        try {
+          await this.updateUserState({ hasThrownToday: true });
+        } catch (error) {
+          if (error.message === '请先登录') {
+            // 显示登录模态框
+            authManager.showLoginModal();
+            showLoading(false);
+            return;
+          }
+          throw error;
+        }
       }
 
       // 更新UI
@@ -439,7 +472,12 @@ class BottleManager {
       showToast('漂流瓶已成功投入大海');
     } catch (error) {
       console.error('投放漂流瓶失败:', error);
-      showToast('投放失败，请稍后再试');
+      if (error.message === '请先登录') {
+        // 显示登录模态框
+        authManager.showLoginModal();
+      } else {
+        showToast('投放失败，请稍后再试');
+      }
     } finally {
       // 隐藏加载指示器
       showLoading(false);

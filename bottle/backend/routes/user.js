@@ -1,12 +1,14 @@
 const express = require('express');
 const { pool } = require('../config/db');
+const { authenticateToken } = require('../utils/jwt');
 
 const router = express.Router();
 
 // 获取用户状态
 router.get('/state', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    // 从查询参数或认证中间件获取用户ID
+    const userId = req.query.userId ? parseInt(req.query.userId) : req.user?.id;
 
     if (!userId) {
       // 如果用户未登录，返回默认状态
@@ -82,8 +84,31 @@ router.get('/state', async (req, res) => {
   }
 });
 
+// 记录用户已捡起漂流瓶
+router.post('/pick', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: '请先登录' });
+    }
+
+    // 更新用户捡瓶子状态
+    const today = new Date().toISOString().split('T')[0];
+    await pool.execute(
+      'UPDATE user_states SET has_picked_today = 1, last_pick_date = ? WHERE user_id = ?',
+      [today, userId]
+    );
+
+    res.json({ message: '记录成功' });
+  } catch (error) {
+    console.error('记录捡瓶子错误:', error);
+    res.status(500).json({ error: '服务器内部错误' });
+  }
+});
+
 // 更新用户状态
-router.put('/state', async (req, res) => {
+router.put('/state', authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.id;
 
@@ -172,7 +197,7 @@ router.put('/state', async (req, res) => {
 });
 
 // 获取用户收藏的漂流瓶
-router.get('/saves', async (req, res) => {
+router.get('/saves', authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.id;
 
@@ -222,7 +247,7 @@ router.get('/saves', async (req, res) => {
 });
 
 // 收藏漂流瓶
-router.post('/saves', async (req, res) => {
+router.post('/saves', authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const { bottleId, annotation } = req.body;
@@ -269,7 +294,7 @@ router.post('/saves', async (req, res) => {
 });
 
 // 取消收藏漂流瓶
-router.delete('/saves/:bottleId', async (req, res) => {
+router.delete('/saves/:bottleId', authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const bottleId = req.params.bottleId;

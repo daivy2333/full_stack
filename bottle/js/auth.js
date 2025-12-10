@@ -8,14 +8,24 @@ class AuthManager {
     this.currentUser = null;
     this.anonymousUserId = 1; // 匿名用户ID
 
-    // 从本地存储中恢复登录状态
-    this.restoreAuthState();
+    // 等待DOM加载完成
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.init());
+    } else {
+      this.init();
+    }
+  }
 
+  // 初始化方法
+  init() {
     // 绑定DOM元素
     this.bindElements();
 
     // 绑定事件
     this.bindEvents();
+
+    // 从本地存储中恢复登录状态
+    this.restoreAuthState();
   }
 
   // 绑定DOM元素
@@ -93,13 +103,20 @@ class AuthManager {
   // 从本地存储恢复认证状态
   restoreAuthState() {
     const savedUser = localStorage.getItem('bottleUser');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('bottleToken');
+    
+    if (savedUser && savedToken) {
       try {
         this.currentUser = JSON.parse(savedUser);
-        this.updateUI();
+        this.currentUser.token = savedToken;
+        // 只有在DOM元素已经加载后才更新UI
+        if (this.userGuestEl && this.userLoggedInEl) {
+          this.updateUI();
+        }
       } catch (error) {
         console.error('恢复用户状态失败:', error);
         localStorage.removeItem('bottleUser');
+        localStorage.removeItem('bottleToken');
       }
     }
   }
@@ -108,30 +125,40 @@ class AuthManager {
   saveAuthState() {
     if (this.currentUser) {
       localStorage.setItem('bottleUser', JSON.stringify(this.currentUser));
+      if (this.currentUser.token) {
+        localStorage.setItem('bottleToken', this.currentUser.token);
+      }
     } else {
       localStorage.removeItem('bottleUser');
+      localStorage.removeItem('bottleToken');
     }
   }
 
   // 显示登录模态框
   showLoginModal() {
-    this.loginModalEl.classList.remove('hidden');
+    // 先隐藏注册模态框（如果打开了）
+    this.registerModalEl.classList.remove('show');
+    // 显示登录模态框
+    this.loginModalEl.classList.add('show');
   }
 
   // 隐藏登录模态框
   hideLoginModal() {
-    this.loginModalEl.classList.add('hidden');
+    this.loginModalEl.classList.remove('show');
     this.loginFormEl.reset();
   }
 
   // 显示注册模态框
   showRegisterModal() {
-    this.registerModalEl.classList.remove('hidden');
+    // 先隐藏登录模态框（如果打开了）
+    this.loginModalEl.classList.remove('show');
+    // 显示注册模态框
+    this.registerModalEl.classList.add('show');
   }
 
   // 隐藏注册模态框
   hideRegisterModal() {
-    this.registerModalEl.classList.add('hidden');
+    this.registerModalEl.classList.remove('show');
     this.registerFormEl.reset();
   }
 
@@ -154,12 +181,13 @@ class AuthManager {
       // 调用API进行登录
       const response = await bottleAPI.loginUser(username, password);
 
-      if (response.success === 1) {
+      if (response.token) {
         // 登录成功
         this.currentUser = {
-          id: response.userId,
-          username: response.username,
-          email: response.email
+          id: response.user.id,
+          username: response.user.username,
+          email: response.user.email,
+          token: response.token
         };
 
         // 保存状态并更新UI
@@ -216,12 +244,13 @@ class AuthManager {
       // 调用API进行注册
       const response = await bottleAPI.registerUser(username, email, password);
 
-      if (response.success === 1) {
+      if (response.token) {
         // 注册成功
         this.currentUser = {
-          id: response.userId,
-          username: response.username,
-          email: response.email
+          id: response.user.id,
+          username: response.user.username,
+          email: response.user.email,
+          token: response.token
         };
 
         // 保存状态并更新UI

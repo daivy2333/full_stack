@@ -7,7 +7,8 @@ const router = express.Router();
 // 获取随机漂流瓶（用户未看过的）
 router.get('/random', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    // 从查询参数或认证中间件获取用户ID
+    const userId = req.query.userId ? parseInt(req.query.userId) : req.user?.id;
 
     let query;
     let params = [];
@@ -15,7 +16,15 @@ router.get('/random', async (req, res) => {
     if (userId) {
       // 如果用户已登录，获取用户未看过的漂流瓶
       query = `
-        CALL get_random_unseen_bottle(?)
+        SELECT b.*, u.username
+        FROM bottles b
+        JOIN users u ON b.user_id = u.id
+        WHERE b.is_active = TRUE 
+        AND b.id NOT IN (
+          SELECT bottle_id FROM user_bottle_views WHERE user_id = ?
+        )
+        ORDER BY RAND()
+        LIMIT 1
       `;
       params = [userId];
     } else {
