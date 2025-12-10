@@ -26,8 +26,16 @@ class BottleAPI {
     }
 
     try {
-      const response = await fetch(`${this.baseURL}/${endpoint}`, options);
+      const url = `${this.baseURL}/${endpoint}`;
+      console.log('发送请求到:', url);
+      console.log('请求方法:', method);
+      console.log('请求数据:', data);
+
+      const response = await fetch(url, options);
+      console.log('响应状态:', response.status);
+
       const result = await response.json();
+      console.log('响应数据:', result);
 
       if (!response.ok) {
         // 如果是401错误，清除token并提示用户登录
@@ -36,7 +44,10 @@ class BottleAPI {
           localStorage.removeItem('bottleUser');
           throw new Error('请先登录');
         }
-        throw new Error(result.message || '请求失败');
+        
+        // 尝试从响应中获取错误信息
+        const errorMessage = result.error || result.message || `请求失败 (${response.status})`;
+        throw new Error(errorMessage);
       }
 
       return result;
@@ -93,7 +104,12 @@ class BottleAPI {
 
   // 获取随机漂流瓶
   async getRandomBottle(userId) {
-    return this.request(`bottles/random?userId=${userId}`);
+    console.log('API请求: 获取随机漂流瓶, userId:', userId);
+    const endpoint = `bottles/random?userId=${userId}`;
+    console.log('请求端点:', endpoint);
+    const result = this.request(endpoint);
+    console.log('API请求结果:', result);
+    return result;
   }
 
   // 对漂流瓶做出反应（点赞/点踩）

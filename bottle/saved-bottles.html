@@ -143,10 +143,34 @@
         });
 
         // 加载保存的漂流瓶
-        function loadSavedBottles() {
-            const savedBottles = JSON.parse(localStorage.getItem('savedBottles') || '[]');
+        async function loadSavedBottles() {
+            try {
+                // 获取当前用户ID
+                const userId = localStorage.getItem('bottleUser') ? 
+                    JSON.parse(localStorage.getItem('bottleUser')).id : null;
+                
+                if (!userId) {
+                    showToast('请先登录', 'error');
+                    return;
+                }
+                
+                // 从API获取收藏的漂流瓶
+                const token = localStorage.getItem('bottleToken');
+                const response = await fetch(`http://localhost:3000/api/user/saves?userId=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('获取收藏失败');
+                }
+                
+                const savedBottles = await response.json();
 
-            if (savedBottles.length === 0) {
+                if (savedBottles.length === 0) {
                 savedBottlesList.innerHTML = '<div class="empty-message">还没有收藏任何漂流瓶，快去捡一些喜欢的瓶子吧！</div>';
                 return;
             }
@@ -160,6 +184,10 @@
                 const bottleElement = createBottleElement(savedBottle, index);
                 savedBottlesList.appendChild(bottleElement);
             });
+            } catch (error) {
+                console.error('加载收藏失败:', error);
+                savedBottlesList.innerHTML = `<div class="error-message">加载收藏失败: ${error.message}</div>`;
+            }
         }
 
         // 创建漂流瓶元素
@@ -189,17 +217,61 @@
         }
 
         // 删除保存的漂流瓶
-        function deleteSavedBottle(index) {
+        async function deleteSavedBottle(index) {
             if (!confirm('确定要删除这个漂流瓶吗？')) {
                 return;
             }
 
-            const savedBottles = JSON.parse(localStorage.getItem('savedBottles') || '[]');
-            savedBottles.splice(index, 1);
-            localStorage.setItem('savedBottles', JSON.stringify(savedBottles));
+            try {
+                // 获取当前用户ID
+                const userId = localStorage.getItem('bottleUser') ? 
+                    JSON.parse(localStorage.getItem('bottleUser')).id : null;
+                
+                if (!userId) {
+                    showToast('请先登录', 'error');
+                    return;
+                }
 
-            showToast('漂流瓶已删除', 'success');
-            loadSavedBottles(); // 重新加载列表
+                // 获取所有收藏的漂流瓶以找到要删除的那个
+                const token = localStorage.getItem('bottleToken');
+                const response = await fetch(`http://localhost:3000/api/user/saves?userId=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('获取收藏失败');
+                }
+                
+                const savedBottles = await response.json();
+                const bottleToDelete = savedBottles[index];
+                
+                if (!bottleToDelete) {
+                    throw new Error('找不到要删除的漂流瓶');
+                }
+                
+                // 从服务器删除收藏
+                const deleteResponse = await fetch(`http://localhost:3000/api/user/saves/${bottleToDelete.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('bottleToken')}`
+                    }
+                });
+                
+                if (!deleteResponse.ok) {
+                    throw new Error('删除收藏失败');
+                }
+
+                showToast('漂流瓶已删除', 'success');
+                loadSavedBottles(); // 重新加载列表
+            } catch (error) {
+                console.error('删除收藏失败:', error);
+                showToast(`删除失败: ${error.message}`, 'error');
+            }
         }
 
         // 格式化日期
@@ -208,9 +280,7 @@
             return date.toLocaleDateString('zh-CN', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric'
             });
         }
 

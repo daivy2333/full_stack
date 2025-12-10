@@ -53,6 +53,9 @@ class BottleManager {
     // 切换按钮
     this.toggleBtn = document.getElementById('toggle-btn');
     this.devModeBtn = document.getElementById('dev-mode-btn');
+    
+    // 玩法说明按钮
+    this.howToPlayBtn = document.getElementById('how-to-play-btn');
   }
 
   // 绑定事件
@@ -71,6 +74,9 @@ class BottleManager {
     // 切换视图事件
     this.toggleBtn.addEventListener('click', () => this.toggleView());
     this.devModeBtn.addEventListener('click', () => this.toggleDevMode());
+    
+    // 玩法说明事件
+    this.howToPlayBtn.addEventListener('click', () => this.showHowToPlay());
   }
 
   // 初始化
@@ -148,11 +154,12 @@ class BottleManager {
       this.throwBtn.textContent = '投入大海';
     }
 
-    // 重置瓶子显示
-    this.bottleDisplay.classList.add('hidden');
-    this.bottleContentView.classList.add('hidden');
-    this.visualBottle.classList.remove('hidden');
-    this.currentBottle = null;
+    // 只有在没有当前瓶子时才重置瓶子显示
+    if (!this.currentBottle) {
+      this.bottleDisplay.classList.add('hidden');
+      this.bottleContentView.classList.add('hidden');
+      this.visualBottle.classList.remove('hidden');
+    }
   }
 
   // 切换视图
@@ -179,6 +186,43 @@ class BottleManager {
     } else {
       this.disableDevMode();
     }
+  }
+
+  // 显示玩法说明
+  showHowToPlay() {
+    // 确保在捡瓶子视图
+    if (this.currentView !== 'pick') {
+      this.toggleView();
+    }
+
+    // 创建一个特殊的漂流瓶，包含玩法说明
+    const guideBottle = {
+      id: 'guide',
+      message: `🌊 漂流瓶玩法说明 🌊\n\n1. 捡漂流瓶：每天可以捡起一个随机的漂流瓶，看看别人的心声。\n\n2. 写漂流瓶：每天可以写一个漂流瓶，把你的心声投入大海。\n\n3. 互动：你可以对喜欢的漂流瓶投扇贝🐚或鱼骨头🦴，也可以收藏喜欢的漂流瓶💾。\n\n4. 收藏：点击"我的收藏"可以查看所有你收藏的漂流瓶。\n\n5. 开发者模式：开启后可以无限制地捡瓶子和写瓶子。\n\n祝你在赛博海洋中玩得愉快！`,
+      author: '系统',
+      date: new Date().toISOString().split('T')[0],
+      likes: 0,
+      dislikes: 0,
+      views: 0
+    };
+
+    // 保存当前漂流瓶
+    this.currentBottle = guideBottle;
+
+    // 显示瓶子
+    this.bottleDisplay.classList.remove('hidden');
+
+    // 更新瓶子内容
+    this.bottleMessage.textContent = this.currentBottle.message;
+    this.bottleAuthor.textContent = `作者: ${this.currentBottle.author || '匿名'}`;
+    this.bottleDate.textContent = `日期: ${this.currentBottle.date}`;
+    this.bottleLikes.textContent = this.currentBottle.likes;
+    this.bottleDislikes.textContent = this.currentBottle.dislikes;
+    this.bottleViews.textContent = this.currentBottle.views;
+
+    // 显示瓶子内容
+    this.bottleContentView.classList.remove('hidden');
+    this.visualBottle.classList.add('hidden');
   }
 
   // 启用开发者模式
@@ -237,9 +281,13 @@ class BottleManager {
 
       // 获取随机漂流瓶
       const userId = authManager.getCurrentUserId();
+      console.log('当前用户ID:', userId);
+      console.log('正在获取随机漂流瓶...');
       const bottle = await bottleAPI.getRandomBottle(userId);
+      console.log('获取到的漂流瓶数据:', bottle);
 
-      if (bottle.id === null) {
+      if (!bottle || bottle.id === null) {
+        console.log('没有获取到漂流瓶，返回的数据:', bottle);
         showToast(bottle.message || '没有更多漂流瓶了');
         return;
       }
@@ -252,7 +300,13 @@ class BottleManager {
 
       // 记录用户已捡起漂流瓶
       try {
-        await bottleAPI.recordBottlePicked(userId);
+        const response = await bottleAPI.recordBottlePicked(userId);
+        // 更新本地用户状态
+        this.userState = {
+          ...this.userState,
+          hasPickedToday: response.hasPickedToday,
+          lastPickDate: response.lastPickDate
+        };
       } catch (error) {
         if (error.message === '请先登录') {
           // 显示登录模态框
@@ -262,19 +316,7 @@ class BottleManager {
         throw error;
       }
 
-      // 更新用户状态
-      if (!this.userState.devMode) {
-        try {
-          await this.updateUserState({ hasPickedToday: true });
-        } catch (error) {
-          if (error.message === '请先登录') {
-            // 显示登录模态框
-            authManager.showLoginModal();
-            return;
-          }
-          throw error;
-        }
-      }
+      // 在开发者模式下，不需要更新用户状态，因为已经在recordBottlePicked中更新了
 
       // 更新UI
       this.updateUI();

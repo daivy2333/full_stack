@@ -268,7 +268,8 @@ class AuthManager {
       }
     } catch (error) {
       console.error('注册错误:', error);
-      showToast('注册失败，请稍后再试');
+      // 显示具体的错误信息
+      showToast(error.message || '注册失败，请稍后再试');
     } finally {
       // 隐藏加载指示器
       showLoading(false);

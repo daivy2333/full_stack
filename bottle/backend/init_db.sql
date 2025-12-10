@@ -14,6 +14,52 @@ CREATE TABLE IF NOT EXISTS users (
   is_active BOOLEAN DEFAULT TRUE
 );
 
+-- 创建用户唯一性触发器
+DELIMITER //
+CREATE TRIGGER IF NOT EXISTS check_user_unique
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+  -- 检查用户名是否已存在
+  IF EXISTS (SELECT id FROM users WHERE username = NEW.username) THEN
+    SIGNAL SQLSTATE '45000' 
+    SET MESSAGE_TEXT = '用户名已存在';
+  END IF;
+  
+  -- 检查邮箱是否已存在（如果提供了邮箱）
+  IF NEW.email IS NOT NULL AND NEW.email != '' THEN
+    IF EXISTS (SELECT id FROM users WHERE email = NEW.email) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '邮箱已被注册';
+    END IF;
+  END IF;
+END//
+DELIMITER ;
+
+-- 创建更新时的触发器
+DELIMITER //
+CREATE TRIGGER IF NOT EXISTS check_user_unique_update
+BEFORE UPDATE ON users
+FOR EACH ROW
+BEGIN
+  -- 如果用户名被修改，检查新用户名是否已存在
+  IF NEW.username != OLD.username THEN
+    IF EXISTS (SELECT id FROM users WHERE username = NEW.username AND id != OLD.id) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '用户名已存在';
+    END IF;
+  END IF;
+  
+  -- 如果邮箱被修改，检查新邮箱是否已存在
+  IF NEW.email != OLD.email AND NEW.email IS NOT NULL AND NEW.email != '' THEN
+    IF EXISTS (SELECT id FROM users WHERE email = NEW.email AND id != OLD.id) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '邮箱已被注册';
+    END IF;
+  END IF;
+END//
+DELIMITER ;
+
 -- 创建漂流瓶表
 CREATE TABLE IF NOT EXISTS bottles (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -418,6 +464,7 @@ DELIMITER ;
 -- 2. 用户状态管理逻辑 --------------------------------------------------
 
 -- 获取用户状态
+-- 修复get_user_state存储过程
 DROP PROCEDURE IF EXISTS get_user_state;
 DELIMITER //
 CREATE PROCEDURE get_user_state(
@@ -427,6 +474,8 @@ BEGIN
   DECLARE v_today DATE DEFAULT CURDATE();
   DECLARE v_state_exists INT;
   DECLARE v_anonymous_user_id INT DEFAULT 1;
+  DECLARE v_last_pick_date DATE;
+  DECLARE v_last_throw_date DATE;
 
   -- 如果用户不存在，使用匿名用户
   IF p_user_id IS NULL OR p_user_id = 0 THEN
@@ -443,19 +492,30 @@ BEGIN
     INSERT INTO user_states (user_id) VALUES (p_user_id);
   END IF;
 
-  -- 检查日期是否变化，如果变化则重置状态
-  UPDATE user_states
-  SET 
-    has_picked_today = IF(last_pick_date = v_today, has_picked_today, FALSE),
-    has_thrown_today = IF(last_throw_date = v_today, has_thrown_today, FALSE)
+  -- 获取用户当前日期
+  SELECT last_pick_date, last_throw_date INTO v_last_pick_date, v_last_throw_date
+  FROM user_states
   WHERE user_id = p_user_id;
 
+  -- 检查日期是否变化，如果变化则重置状态
+  IF v_last_pick_date IS NOT NULL AND v_last_pick_date != v_today THEN
+    UPDATE user_states
+    SET has_picked_today = FALSE
+    WHERE user_id = p_user_id;
+  END IF;
+
+  IF v_last_throw_date IS NOT NULL AND v_last_throw_date != v_today THEN
+    UPDATE user_states
+    SET has_thrown_today = FALSE
+    WHERE user_id = p_user_id;
+  END IF;
+
   -- 返回用户状态
-  SELECT 
+  SELECT
     IF(has_picked_today AND last_pick_date = v_today, TRUE, FALSE) AS hasPickedToday,
     IF(has_thrown_today AND last_throw_date = v_today, TRUE, FALSE) AS hasThrownToday,
-    last_pick_date AS lastPickDate,
-    last_throw_date AS lastThrowDate,
+    DATE_FORMAT(last_pick_date, "%Y-%m-%d") AS lastPickDate,
+    DATE_FORMAT(last_throw_date, "%Y-%m-%d") AS lastThrowDate,
     current_view AS currentView,
     dev_mode AS devMode,
     has_seen_tutorial AS hasSeenTutorial
@@ -463,6 +523,7 @@ BEGIN
   WHERE user_id = p_user_id;
 END //
 DELIMITER ;
+
 
 -- 更新用户状态
 DROP PROCEDURE IF EXISTS update_user_state;
@@ -876,3 +937,58 @@ BEGIN
   SELECT ROW_COUNT() AS affected_rows, '用户已启用' AS message;
 END //
 DELIMITER ;
+
+-- 创建用户唯一性触发器
+USE drift_bottle;
+
+-- 删除可能存在的触发器
+DROP TRIGGER IF EXISTS check_user_unique;
+
+-- 创建触发器，在插入或更新用户前检查用户名和邮箱的唯一性
+DELIMITER //
+CREATE TRIGGER check_user_unique
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+  -- 检查用户名是否已存在
+  IF EXISTS (SELECT id FROM users WHERE username = NEW.username) THEN
+    SIGNAL SQLSTATE '45000' 
+    SET MESSAGE_TEXT = '用户名已存在';
+  END IF;
+
+  -- 检查邮箱是否已存在（如果提供了邮箱）
+  IF NEW.email IS NOT NULL AND NEW.email != '' THEN
+    IF EXISTS (SELECT id FROM users WHERE email = NEW.email) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '邮箱已被注册';
+    END IF;
+  END IF;
+END//
+DELIMITER ;
+
+-- 创建更新时的触发器
+DROP TRIGGER IF EXISTS check_user_unique_update;
+
+DELIMITER //
+CREATE TRIGGER check_user_unique_update
+BEFORE UPDATE ON users
+FOR EACH ROW
+BEGIN
+  -- 如果用户名被修改，检查新用户名是否已存在
+  IF NEW.username != OLD.username THEN
+    IF EXISTS (SELECT id FROM users WHERE username = NEW.username AND id != OLD.id) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '用户名已存在';
+    END IF;
+  END IF;
+
+  -- 如果邮箱被修改，检查新邮箱是否已存在
+  IF NEW.email != OLD.email AND NEW.email IS NOT NULL AND NEW.email != '' THEN
+    IF EXISTS (SELECT id FROM users WHERE email = NEW.email AND id != OLD.id) THEN
+      SIGNAL SQLSTATE '45000' 
+      SET MESSAGE_TEXT = '邮箱已被注册';
+    END IF;
+  END IF;
+END//
+DELIMITER ;
+

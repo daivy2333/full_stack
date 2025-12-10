@@ -23,60 +23,33 @@ router.get('/state', async (req, res) => {
       });
     }
 
-    // 获取用户状态
-    const [rows] = await pool.execute(
-      'SELECT * FROM user_states WHERE user_id = ?',
-      [userId]
-    );
+    // 使用存储过程获取用户状态
+    const [rows] = await pool.execute('CALL get_user_state(?)', [userId]);
+    
+    // 存储过程返回的结果在第二个结果集中
+    const state = rows[0][0];
+    
+    console.log('存储过程返回的用户状态:', JSON.stringify(state, null, 2));
 
-    if (rows.length === 0) {
-      // 如果状态不存在，创建默认状态
-      await pool.execute(
-        'INSERT INTO user_states (user_id) VALUES (?)',
-        [userId]
-      );
-
-      return res.json({
-        hasPickedToday: false,
-        hasThrownToday: false,
-        lastPickDate: null,
-        lastThrowDate: null,
-        currentView: 'pick',
-        devMode: false,
-        hasSeenTutorial: false
-      });
-    }
-
-    const state = rows[0];
-
-    // 检查日期是否变化
-    const today = new Date().toISOString().split('T')[0];
-    const hasPickedToday = state.last_pick_date === today && state.has_picked_today;
-    const hasThrownToday = state.last_throw_date === today && state.has_thrown_today;
-
-    // 如果日期变化，重置状态
-    if (state.last_pick_date !== today && state.has_picked_today) {
-      await pool.execute(
-        'UPDATE user_states SET has_picked_today = 0 WHERE user_id = ?',
-        [userId]
-      );
-    }
-
-    if (state.last_throw_date !== today && state.has_thrown_today) {
-      await pool.execute(
-        'UPDATE user_states SET has_thrown_today = 0 WHERE user_id = ?',
-        [userId]
-      );
-    }
+    // 确保日期字段以正确的格式返回
+    const formatDate = (date) => {
+      if (!date) return null;
+      // 如果已经是字符串，直接返回
+      if (typeof date === 'string') {
+        return date.split('T')[0];
+      }
+      // 如果是Date对象，转换为ISO字符串并只取日期部分
+      return date.toISOString().split('T')[0];
+    };
 
     res.json({
-      hasPickedToday,
-      hasThrownToday,
-      lastPickDate: state.last_pick_date,
-      lastThrowDate: state.last_throw_date,
-      currentView: state.current_view,
-      devMode: state.dev_mode,
-      hasSeenTutorial: state.has_seen_tutorial
+      hasPickedToday: Boolean(state.hasPickedToday),
+      hasThrownToday: Boolean(state.hasThrownToday),
+      lastPickDate: formatDate(state.lastPickDate),
+      lastThrowDate: formatDate(state.lastThrowDate),
+      currentView: state.currentView,
+      devMode: Boolean(state.devMode),
+      hasSeenTutorial: Boolean(state.hasSeenTutorial)
     });
   } catch (error) {
     console.error('获取用户状态错误:', error);
@@ -93,14 +66,53 @@ router.post('/pick', authenticateToken, async (req, res) => {
       return res.status(401).json({ error: '请先登录' });
     }
 
-    // 更新用户捡瓶子状态
-    const today = new Date().toISOString().split('T')[0];
-    await pool.execute(
-      'UPDATE user_states SET has_picked_today = 1, last_pick_date = ? WHERE user_id = ?',
-      [today, userId]
-    );
+    // 使用存储过程更新用户捡瓶子状态
+    console.log('准备使用存储过程更新用户状态，userId:', userId);
+    
+    try {
+      await pool.execute('CALL record_bottle_picked(?)', [userId]);
+      console.log('存储过程执行成功');
+    } catch (error) {
+      console.error('存储过程执行失败:', error);
+      throw error;
+    }
 
-    res.json({ message: '记录成功' });
+    // 获取更新后的用户状态
+    try {
+      const [rows] = await pool.execute('CALL get_user_state(?)', [userId]);
+      
+      // 存储过程返回的结果在第二个结果集中
+      const state = rows[0][0];
+      console.log('存储过程返回的用户状态:', JSON.stringify(state, null, 2));
+      
+      // 确保日期字段以正确的格式返回
+      const formatDate = (date) => {
+        if (!date) return null;
+        // 如果已经是字符串，直接返回
+        if (typeof date === 'string') {
+          return date.split('T')[0];
+        }
+        // 如果是Date对象，转换为ISO字符串并只取日期部分
+        return date.toISOString().split('T')[0];
+      };
+
+      // 返回更新后的状态
+      res.json({
+        message: '记录成功',
+        hasPickedToday: Boolean(state.hasPickedToday),
+        hasThrownToday: Boolean(state.hasThrownToday),
+        lastPickDate: formatDate(state.lastPickDate),
+        lastThrowDate: formatDate(state.lastThrowDate),
+        currentView: state.currentView,
+        devMode: Boolean(state.devMode),
+        hasSeenTutorial: Boolean(state.hasSeenTutorial)
+      });
+    } catch (error) {
+      console.error('获取用户状态失败:', error);
+      throw error;
+    }
+    
+
   } catch (error) {
     console.error('记录捡瓶子错误:', error);
     res.status(500).json({ error: '服务器内部错误' });
@@ -158,37 +170,43 @@ router.put('/state', authenticateToken, async (req, res) => {
       updates.has_seen_tutorial = hasSeenTutorial;
     }
 
-    // 构建SQL查询
-    const setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
-    const values = Object.values(updates);
-    values.push(userId);
-
-    // 更新用户状态
-    await pool.execute(
-      `UPDATE user_states SET ${setClause} WHERE user_id = ?`,
-      values
-    );
+    // 使用存储过程更新用户状态
+    await pool.execute('CALL update_user_state(?, ?, ?, ?, ?, ?, ?, ?)', [
+      userId,
+      updates.has_picked_today !== undefined ? updates.has_picked_today : null,
+      updates.has_thrown_today !== undefined ? updates.has_thrown_today : null,
+      updates.last_pick_date !== undefined ? updates.last_pick_date : null,
+      updates.last_throw_date !== undefined ? updates.last_throw_date : null,
+      updates.current_view !== undefined ? updates.current_view : null,
+      updates.dev_mode !== undefined ? updates.dev_mode : null,
+      updates.has_seen_tutorial !== undefined ? updates.has_seen_tutorial : null
+    ]);
 
     // 返回更新后的状态
-    const [rows] = await pool.execute(
-      'SELECT * FROM user_states WHERE user_id = ?',
-      [userId]
-    );
+    const [rows] = await pool.execute('CALL get_user_state(?)', [userId]);
+    
+    // 存储过程返回的结果在第二个结果集中
+    const state = rows[0][0];
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: '用户状态不存在' });
-    }
-
-    const state = rows[0];
+    // 确保日期字段以正确的格式返回
+    const formatDate = (date) => {
+      if (!date) return null;
+      // 如果已经是字符串，直接返回
+      if (typeof date === 'string') {
+        return date.split('T')[0];
+      }
+      // 如果是Date对象，转换为ISO字符串并只取日期部分
+      return date.toISOString().split('T')[0];
+    };
 
     res.json({
-      hasPickedToday: state.has_picked_today && state.last_pick_date === today,
-      hasThrownToday: state.has_thrown_today && state.last_throw_date === today,
-      lastPickDate: state.last_pick_date,
-      lastThrowDate: state.last_throw_date,
-      currentView: state.current_view,
-      devMode: state.dev_mode,
-      hasSeenTutorial: state.has_seen_tutorial
+      hasPickedToday: Boolean(state.hasPickedToday),
+      hasThrownToday: Boolean(state.hasThrownToday),
+      lastPickDate: formatDate(state.lastPickDate),
+      lastThrowDate: formatDate(state.lastThrowDate),
+      currentView: state.currentView,
+      devMode: Boolean(state.devMode),
+      hasSeenTutorial: Boolean(state.hasSeenTutorial)
     });
   } catch (error) {
     console.error('更新用户状态错误:', error);
