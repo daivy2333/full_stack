@@ -1,5 +1,6 @@
 const express = require('express');
 const { pool } = require('../config/db');
+const { authenticateToken } = require('../utils/jwt');
 
 const router = express.Router();
 
@@ -163,7 +164,7 @@ router.post('/', async (req, res) => {
 });
 
 // 对漂流瓶进行反应（点赞/点踩）
-router.post('/:id/react', async (req, res) => {
+router.post('/:id/react', authenticateToken, async (req, res) => {
   try {
     const userId = req.user?.id;
     const { reactionType } = req.body; // 'like' 或 'dislike'
@@ -194,7 +195,10 @@ router.post('/:id/react', async (req, res) => {
       [userId, bottleId]
     );
 
+    let oldReactionType = null;
     if (reactionRows.length > 0) {
+      oldReactionType = reactionRows[0].reaction_type;
+
       // 如果用户已经做出反应，更新反应类型
       await pool.execute(
         'UPDATE user_bottle_reactions SET reaction_type = ?, created_at = NOW() WHERE user_id = ? AND bottle_id = ?',
@@ -206,6 +210,40 @@ router.post('/:id/react', async (req, res) => {
         'INSERT INTO user_bottle_reactions (user_id, bottle_id, reaction_type) VALUES (?, ?, ?)',
         [userId, bottleId, reactionType]
       );
+    }
+
+    // 同步更新bottles表中的likes和dislikes字段
+    if (oldReactionType === reactionType) {
+      // 如果反应类型没有变化，不需要更新bottles表
+      // 这种情况理论上不应该发生，因为前端应该已经阻止了重复点击
+    } else if (oldReactionType) {
+      // 如果用户之前有反应，且现在改变了反应类型
+      if (oldReactionType === 'like' && reactionType === 'dislike') {
+        // 从点赞改为点踩
+        await pool.execute(
+          'UPDATE bottles SET likes = likes - 1, dislikes = dislikes + 1 WHERE id = ?',
+          [bottleId]
+        );
+      } else if (oldReactionType === 'dislike' && reactionType === 'like') {
+        // 从点踩改为点赞
+        await pool.execute(
+          'UPDATE bottles SET likes = likes + 1, dislikes = dislikes - 1 WHERE id = ?',
+          [bottleId]
+        );
+      }
+    } else {
+      // 如果用户之前没有反应，现在新增反应
+      if (reactionType === 'like') {
+        await pool.execute(
+          'UPDATE bottles SET likes = likes + 1 WHERE id = ?',
+          [bottleId]
+        );
+      } else if (reactionType === 'dislike') {
+        await pool.execute(
+          'UPDATE bottles SET dislikes = dislikes + 1 WHERE id = ?',
+          [bottleId]
+        );
+      }
     }
 
     // 获取更新后的点赞和点踩数

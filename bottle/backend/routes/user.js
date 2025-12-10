@@ -52,6 +52,21 @@ router.get('/state', async (req, res) => {
     const hasPickedToday = state.last_pick_date === today && state.has_picked_today;
     const hasThrownToday = state.last_throw_date === today && state.has_thrown_today;
 
+    // 如果日期变化，重置状态
+    if (state.last_pick_date !== today && state.has_picked_today) {
+      await pool.execute(
+        'UPDATE user_states SET has_picked_today = 0 WHERE user_id = ?',
+        [userId]
+      );
+    }
+
+    if (state.last_throw_date !== today && state.has_thrown_today) {
+      await pool.execute(
+        'UPDATE user_states SET has_thrown_today = 0 WHERE user_id = ?',
+        [userId]
+      );
+    }
+
     res.json({
       hasPickedToday,
       hasThrownToday,

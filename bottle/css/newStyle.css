@@ -1,0 +1,491 @@
+/* 漂流瓶应用样式 */
+
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 应用头部 */
+.app-header {
+    background-color: #4a6cf7;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.user-controls {
+    display: flex;
+    align-items: center;
+}
+
+.auth-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.auth-form input {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* 应用主体 */
+.app-main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* 视图标签 */
+.view-tabs {
+    display: flex;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.view-tab {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.view-tab:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.view-tab.active {
+    color: #4a6cf7;
+    border-bottom-color: #4a6cf7;
+    font-weight: 600;
+}
+
+/* 视图容器 */
+.view {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    min-height: 400px;
+}
+
+/* 按钮样式 */
+.action-btn {
+    background-color: #4a6cf7;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.action-btn:hover {
+    background-color: #3a5bd9;
+}
+
+.action-btn:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+}
+
+/* 漂流瓶区域 */
+.bottle-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.bottle-container {
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+}
+
+.bottle-content-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.bottle-content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.bottle-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.bottle-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reaction-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.likes-count, .dislikes-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.likes-count::before {
+    content: "👍";
+}
+
+.dislikes-count::before {
+    content: "👎";
+}
+
+.reaction-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.reaction-btn {
+    background: none;
+    border: 1px solid #e0e0e0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reaction-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.reaction-btn.active {
+    background-color: #e6e9ff;
+    border-color: #4a6cf7;
+}
+
+/* 创建漂流瓶表单 */
+.create-bottle-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.form-group textarea,
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* 收藏列表 */
+.saved-bottles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.saved-bottle-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+}
+
+.bottle-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.unsave-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unsave-btn:hover {
+    background-color: #d32f2f;
+}
+
+.empty-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* 加载提示 */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4a6cf7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 消息提示 */
+.message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    color: white;
+    z-index: 1001;
+    max-width: 300px;
+}
+
+.message.info {
+    background-color: #2196F3;
+}
+
+.message.success {
+    background-color: #4CAF50;
+}
+
+.message.warning {
+    background-color: #FF9800;
+}
+
+.message.error {
+    background-color: #F44336;
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1002;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    margin-bottom: 1rem;
+}
+
+.tutorial-content ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.tutorial-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* 开发者模式控制 */
+.dev-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.dev-mode-toggle {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.dev-mode-toggle:hover {
+    opacity: 1;
+}
+
+/* 管理员面板 */
+.admin-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background-color: white;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    overflow-y: auto;
+    z-index: 999;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+}
+
+.admin-panel h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: #4a6cf7;
+}
+
+.stats-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.stats-section:last-child {
+    border-bottom: none;
+}
+
+.stats-section h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.stats-section p {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    color: #666;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .auth-form {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .app-main {
+        padding: 1rem;
+    }
+
+    .view {
+        padding: 1rem;
+    }
+
+    .bottle-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .reaction-buttons {
+        justify-content: center;
+    }
+
+    .modal-content {
+        padding: 1rem;
+    }
+
+    .admin-panel {
+        width: 100%;
+        transform: translateY(100%);
+    }
+
+    .admin-panel.show {
+        transform: translateY(0);
+    }
+}

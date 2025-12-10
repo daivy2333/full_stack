@@ -25,13 +25,12 @@ testConnection();
 app.use('/api/auth', authRoutes);
 
 // 漂流瓶公开路由（获取和创建漂流瓶）
-app.get('/api/bottles/random', bottleRoutes);
-app.post('/api/bottles', bottleRoutes);
-app.get('/api/bottles/:id', bottleRoutes);
+app.use('/api/bottles', bottleRoutes);
 
 // 需要认证的路由
 app.use('/api/user', authenticateToken, userRoutes);
-app.use('/api/bottles', authenticateToken, bottleRoutes);
+// 只对需要认证的漂流瓶操作使用认证中间件
+app.post('/api/bottles/:id/react', authenticateToken, bottleRoutes);
 
 // 根路径
 app.get('/', (req, res) => {
